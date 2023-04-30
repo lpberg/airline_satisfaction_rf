@@ -451,69 +451,65 @@ classify satisfaction ratings of airline passengers.</p>
 with na)</p>
 <pre class="r"><code>training_df &lt;- na.omit(training_df)
 test_df &lt;- na.omit(test_df)</code></pre>
-<pre class="r"><code>#Ensure satisfaction is a factor
-training_df$satisfaction &lt;- as.factor(training_df$satisfaction)
-test_df$satisfaction &lt;- as.factor(test_df$satisfaction)
-str(test_df)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    25893 obs. of  25 variables:
-##  $ X                                : int  0 1 2 3 4 5 6 7 8 9 ...
-##  $ id                               : int  19556 90035 12360 77959 36875 39177 79433 97286 27508 62482 ...
-##  $ Gender                           : chr  &quot;Female&quot; &quot;Female&quot; &quot;Male&quot; &quot;Male&quot; ...
-##  $ Customer.Type                    : chr  &quot;Loyal Customer&quot; &quot;Loyal Customer&quot; &quot;disloyal Customer&quot; &quot;Loyal Customer&quot; ...
-##  $ Age                              : int  52 36 20 44 49 16 77 43 47 46 ...
-##  $ Type.of.Travel                   : chr  &quot;Business travel&quot; &quot;Business travel&quot; &quot;Business travel&quot; &quot;Business travel&quot; ...
-##  $ Class                            : chr  &quot;Eco&quot; &quot;Business&quot; &quot;Eco&quot; &quot;Business&quot; ...
-##  $ Flight.Distance                  : int  160 2863 192 3377 1182 311 3987 2556 556 1744 ...
-##  $ Inflight.wifi.service            : int  5 1 2 0 2 3 5 2 5 2 ...
-##  $ Departure.Arrival.time.convenient: int  4 1 0 0 3 3 5 2 2 2 ...
-##  $ Ease.of.Online.booking           : int  3 3 2 0 4 3 5 2 2 2 ...
-##  $ Gate.location                    : int  4 1 4 2 3 3 5 2 2 2 ...
-##  $ Food.and.drink                   : int  3 5 2 3 4 5 3 4 5 3 ...
-##  $ Online.boarding                  : int  4 4 2 4 1 5 5 4 5 4 ...
-##  $ Seat.comfort                     : int  3 5 2 4 2 3 5 5 5 4 ...
-##  $ Inflight.entertainment           : int  5 4 2 1 2 5 5 4 5 4 ...
-##  $ On.board.service                 : int  5 4 4 1 2 4 5 4 2 4 ...
-##  $ Leg.room.service                 : int  5 4 1 1 2 3 5 4 2 4 ...
-##  $ Baggage.handling                 : int  5 4 3 1 2 1 5 4 5 4 ...
-##  $ Checkin.service                  : int  2 3 2 3 4 1 4 5 3 5 ...
-##  $ Inflight.service                 : int  5 4 2 1 2 2 5 4 3 4 ...
-##  $ Cleanliness                      : int  5 5 2 4 4 5 3 3 5 4 ...
-##  $ Departure.Delay.in.Minutes       : int  50 0 0 0 0 0 0 77 1 28 ...
-##  $ Arrival.Delay.in.Minutes         : num  44 0 0 6 20 0 0 65 0 14 ...
-##  $ satisfaction                     : Factor w/ 2 levels &quot;neutral or dissatisfied&quot;,..: 2 2 1 2 2 2 2 2 2 2 ...
-##  - attr(*, &quot;na.action&quot;)= &#39;omit&#39; Named int [1:83] 517 657 1072 1225 1590 1817 1833 2772 2912 3195 ...
-##   ..- attr(*, &quot;names&quot;)= chr [1:83] &quot;517&quot; &quot;657&quot; &quot;1072&quot; &quot;1225&quot; ...</code></pre>
-<pre class="r"><code>rf &lt;- randomForest(satisfaction ~., data=training_df[1:200,])
-pred &lt;- predict(rf, test_df)
-confusionMatrix(pred, test_df$satisfaction,positive=&#39;satisfied&#39;)</code></pre>
+<p>Ensure satisfaction is a factor</p>
+<pre class="r"><code>training_df$satisfaction &lt;- as.factor(training_df$satisfaction)
+test_df$satisfaction &lt;- as.factor(test_df$satisfaction)</code></pre>
+</div>
+</div>
+<div id="model---random-forest" class="section level2">
+<h2>Model - Random Forest</h2>
+<p>Create Random Forest (limit items to ensure it finishes)</p>
+<pre class="r"><code>rf &lt;- randomForest(satisfaction ~., data=training_df[1:5000,])
+rf</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(formula = satisfaction ~ ., data = training_df[1:5000,      ]) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 4
+## 
+##         OOB estimate of  error rate: 5.72%
+## Confusion matrix:
+##                         neutral or dissatisfied satisfied class.error
+## neutral or dissatisfied                    2716       107  0.03790294
+## satisfied                                   179      1998  0.08222324</code></pre>
+<p>Create Predictions using random forest against test data</p>
+<pre class="r"><code>pred &lt;- predict(rf, test_df)
+head(pred)</code></pre>
+<pre><code>##                       1                       2                       3 
+##               satisfied               satisfied neutral or dissatisfied 
+##                       4                       5                       6 
+##               satisfied neutral or dissatisfied               satisfied 
+## Levels: neutral or dissatisfied satisfied</code></pre>
+<p>Create Confusion Matrix to display results</p>
+<pre class="r"><code>confusionMatrix(pred, test_df$satisfaction,positive=&#39;satisfied&#39;)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##                          Reference
 ## Prediction                neutral or dissatisfied satisfied
-##   neutral or dissatisfied                   13838      2174
-##   satisfied                                   690      9191
-##                                           
-##                Accuracy : 0.8894          
-##                  95% CI : (0.8855, 0.8932)
-##     No Information Rate : 0.5611          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.7722          
-##                                           
-##  Mcnemar&#39;s Test P-Value : &lt; 2.2e-16       
-##                                           
-##             Sensitivity : 0.8087          
-##             Specificity : 0.9525          
-##          Pos Pred Value : 0.9302          
-##          Neg Pred Value : 0.8642          
-##              Prevalence : 0.4389          
-##          Detection Rate : 0.3550          
-##    Detection Prevalence : 0.3816          
-##       Balanced Accuracy : 0.8806          
-##                                           
-##        &#39;Positive&#39; Class : satisfied       
+##   neutral or dissatisfied                   13975       864
+##   satisfied                                   553     10501
+##                                          
+##                Accuracy : 0.9453         
+##                  95% CI : (0.9424, 0.948)
+##     No Information Rate : 0.5611         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.8886         
+##                                          
+##  Mcnemar&#39;s Test P-Value : &lt; 2.2e-16      
+##                                          
+##             Sensitivity : 0.9240         
+##             Specificity : 0.9619         
+##          Pos Pred Value : 0.9500         
+##          Neg Pred Value : 0.9418         
+##              Prevalence : 0.4389         
+##          Detection Rate : 0.4056         
+##    Detection Prevalence : 0.4269         
+##       Balanced Accuracy : 0.9430         
+##                                          
+##        &#39;Positive&#39; Class : satisfied      
 ## </code></pre>
-</div>
 </div>
 
 
